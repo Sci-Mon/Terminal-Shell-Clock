@@ -12,7 +12,13 @@ I am coding this clock just out of fun and because I admire beautiful and funny 
 Instead of searching and downloading an old terminal-clock, I decided to rather create my
 own one and include the date as well.
 
+![Screenshot](Screenshots/Screenshot_2025-11-10_20-17-47.png "7-Segments style")
+
+
 This is also proof that a fully functional program can be created with a Bash script. The advantages are obvious: a minimal installation of Linux is sufficient without having to use a bloated programming language.
+
+![Screenshot](Screenshots/Screenshot_2025-11-10_20-21-49.png "Nixie style")
+
 
 ## Description
 
