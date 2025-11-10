@@ -7,7 +7,7 @@ lang: en
 # Terminal Shell Clock
 
 ## Preface
-
+[Screenshot](Screenshots/Screenshot_2025-11-10_20-15-17.png "70ies style")
 I am coding this clock just out of fun and because I admire beautiful and funny clocks.
 Instead of searching and downloading an old terminal-clock, I decided to rather create my
 own one and include the date as well.
