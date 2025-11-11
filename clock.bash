@@ -93,6 +93,9 @@ while [[ $# -gt 0 ]]; do
                 70|data-70) STYLE=70 ;;
                 71|data-70-simple) STYLE=71 ;;
                 72|segment|7-segment) STYLE=72 ;;
+                78|vt100) STYLE=78 ;;
+                83|vt220) STYLE=83 ;;
+                87|vt320) STYLE=87 ;;
                 90|modern) STYLE=90 ;;
                 80|default) STYLE=80 ;;
                 *)
@@ -112,8 +115,12 @@ while [[ $# -gt 0 ]]; do
            printf '\n  --style=70 or --style=DATA-70 \ta futuristic font'
            printf '\n  --style=71 or --style=DATA-70-SIMPLE \tas above blocks only version'
            printf '\n  --style=72 or --style=7-SEGMENT \tseven segment display font'
+           printf '\n  --style=78 or --VT100 \t\tVT100 font'
            printf '\n  --style=80 or --default \t\tdefault 80ies font'
+           printf '\n  --style=83 or --VT220 \t\tVT220 font'
+           printf '\n  --style=87 or --VT320 \t\tVT320 font'
            printf '\n  --style=90 or --MODERN \t\tmodern font'
+
            printf '\n\n  --color=<color> \t\tSet display color (default: red)\n'
            printf '\nSupported:\n1. named colors: \n%s' "$(printf '%s ' "${!_COLORS[@]}")"
            printf '\n\n2. numeric 0-15\n\n3. ANSI codes 30-37/90-97\n\n4. hex #RRGGBB\n\n5. R,G,B (0-255)\n\n'
@@ -234,6 +241,19 @@ elif [[ "$STYLE" -eq 72 ]]; then
     D[9]=$' █▀▀▀▀█\n █    █\n ▀▀▀▀▀█\n      █\n ▄▄▄▄▄█'
     D[:]=$'  \n ▄\n  \n ▄\n  '
     D[.]=$'  \n  \n  \n  \n ▄'
+elif [[ "$STYLE" -eq 78 ]]; then
+    D[0]=$'\n ▄▀▀▀▄ \n█     █\n▀▄   ▄▀\n  ▀▀▀  '
+    D[1]=$'\n  ▄█   \n ▀ █   \n   █   \n ▀▀▀▀▀ '
+    D[2]=$'\n▄▀▀▀▀▄ \n   ▄▄▄▀\n▄▀▀    \n▀▀▀▀▀▀▀'
+    D[3]=$'\n▀▀▀▀▀█▀\n   ▄█▄ \n▄     █\n ▀▀▀▀▀ '
+    D[4]=$'\n   ▄█  \n ▄▀ █  \n▀▀▀▀█▀▀\n    ▀  '
+    D[5]=$'\n█▀▀▀▀▀▀\n█▄▀▀▀▀▄\n▄     █\n ▀▀▀▀▀ '
+    D[6]=$'\n ▄▀▀▀▀▄\n█ ▄▄▄▄ \n█▀    █\n ▀▀▀▀▀ '
+    D[7]=$'\n▀▀▀▀▀▀█\n    ▄▀ \n  ▄▀   \n ▀     '
+    D[8]=$'\n▄▀▀▀▀▀▄\n▀▄▄▄▄▄▀\n█     █\n ▀▀▀▀▀ '
+    D[9]=$'\n▄▀▀▀▀▄ \n▀▄▄▄▄▀█\n▄    ▄▀\n ▀▀▀▀  '
+    D[:]=$'\n ▄▄ \n ▀▀ \n ██ \n    '
+    D[.]=$'\n    \n    \n ▄▄ \n ▀▀ '
 elif [[ "$STYLE" -eq 90 ]]; then
     D[0]=$'  ▄▀▀▄ \n █    █\n █    █\n █    █\n  ▀▄▄▀ '
     D[1]=$'   ▄█  \n ▄▀ █  \n    █  \n    █  \n    █  '
@@ -247,7 +267,32 @@ elif [[ "$STYLE" -eq 90 ]]; then
     D[9]=$'  ▄▀▀▄ \n █    █\n  ▀▄▄▀█\n      █\n ▀▄▄▄▀ '
     D[:]=$'  \n ▄\n  \n ▄\n  '
     D[.]=$'  \n  \n  \n  \n ▄'
-
+elif [[ "$STYLE" -eq 83 ]]; then
+    D[0]=$'\n ▄▀▀▀▄ \n█     █\n▀▄   ▄▀\n  ▀▀▀  '
+    D[1]=$'\n  ▄█   \n ▀ █   \n   █   \n ▀▀▀▀▀ '
+    D[2]=$'\n▄▀▀▀▀▀▄\n   ▄▄▄▀\n▄▀▀    \n▀▀▀▀▀▀▀'
+    D[3]=$'\n▀▀▀▀▀█▀\n   ▄█▄ \n▄     █\n ▀▀▀▀▀ '
+    D[4]=$'\n   ▄█  \n ▄▀ █  \n▀▀▀▀█▀▀\n    ▀  '
+    D[5]=$'\n█▀▀▀▀▀▀\n█▄▀▀▀▀▄\n▄     █\n ▀▀▀▀▀ '
+    D[6]=$'\n ▄▀▀▀▀ \n█ ▄▄▄▄ \n█▀    █\n ▀▀▀▀▀ '
+    D[7]=$'\n▀▀▀▀▀▀█\n    ▄▀ \n  ▄▀   \n  ▀    '
+    D[8]=$'\n▄▀▀▀▀▀▄\n▀▄▄▄▄▄▀\n█     █\n ▀▀▀▀▀ '
+    D[9]=$'\n▄▀▀▀▀▀▄\n▀▄▄▄▄▀█\n     ▄▀\n ▀▀▀▀  '
+    D[:]=$'\n ▄▄ \n ▀▀ \n ██ \n    '
+    D[.]=$'\n    \n    \n ▄▄ \n ▀▀ '
+elif [[ "$STYLE" -eq 87 ]]; then
+    D[0]=$'    ██   \n   █  █  \n  ██  ██ \n  ██  ██ \n  ██  ██ \n   █  █  \n    ██   '
+    D[1]=$'██   ██\n    ██ \n    ██ \n    ██ \n    ██ '
+    D[2]=$' ██████\n     ██\n ██████\n ██    \n ██████'
+    D[3]=$' ██████\n     ██\n ██████\n     ██\n ██████'
+    D[4]=$' ██  ██\n ██  ██\n ██████\n     ██\n     ██'
+    D[5]=$' ██████\n ██    \n ██████\n     ██\n ██████'
+    D[6]=$' ██████\n ██    \n ██████\n ██  ██\n ██████'
+    D[7]=$' ██████\n     ██\n     ██\n     ██\n     ██'
+    D[8]=$' ██████\n ██  ██\n ██████\n ██  ██\n ██████'
+    D[9]=$' ██████\n ██  ██\n ██████\n     ██\n ██████'
+    D[:]=$'   \n ██\n   \n ██\n   '
+    D[.]=$'   \n   \n   \n   \n ██'
 # Define digit representations for style 80ies
 else
     D[0]=$' ██████\n ██  ██\n ██  ██\n ██  ██\n ██████'
