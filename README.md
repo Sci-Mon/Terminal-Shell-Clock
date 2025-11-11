@@ -116,15 +116,33 @@ Available styles:
 - Purpose: Classic digital clock/readout appearance.
 - Good for: Minimal, highly legible numeric output.
 
+#### `78` or `VT100`
+
+- Visual: [VT100](https://en.wikipedia.org/wiki/VT100) emulation.
+- Purpose: Classic terminal appearance.
+- Good for: Minimal, highly readable output.
+
 #### `80` or `default`
 
 - Visual: Large broad block characters; default layout.
 - Purpose: Balanced option intended to render well in most terminals.
 - Good for: Most users — recommended when unsure.
 
+#### `83` or `VT220`
+
+- Visual: [VT220](https://en.wikipedia.org/wiki/VT220) emulation.
+- Purpose: Classic terminal appearance.
+- Good for: Minimal, highly readable output.
+
+#### `87` or `VT320`
+
+- Visual: [VT320](https://en.wikipedia.org/wiki/VT320) emulation.
+- Purpose: Classic terminal appearance.
+- Good for: terminal shells with more than 83 chars in width
+
 #### `90`  or `MODERN`
 
-- Visual: Contemporary, cleaner glyphs / modernized styling.
+- Visual: Contemporary, cleaner glyphs / modernized styling. My own creation finally. 
 - Purpose: A modern alternative to the retro sets.
 - Good for: users preferring a sleeker look.
 
