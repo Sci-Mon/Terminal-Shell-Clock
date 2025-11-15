@@ -7,18 +7,19 @@ lang: en
 # Terminal Shell Clock
 
 ## Preface
+
 ![Screenshot](Screenshots/Screenshot_2025-11-10_20-15-17.png "70ies style")
 I am coding this clock just out of fun and because I admire beautiful and funny clocks.
 Instead of searching and downloading an old terminal-clock, I decided to rather create my
 own one and include the date as well.
 
-![Screenshot](Screenshots/Screenshot_2025-11-10_20-17-46.png "7-Segments style")
+Programming such a clock with the Unicode character set using bash script is almost like programming with BASIC on my beloved [CBM 8032](https://de.wikipedia.org/wiki/CBM_8032) or [C64](https://en.wikipedia.org/wiki/Commodore_64) back in the day. Pure, raw and sometimes spaghetti code. Ah, those were the days!
 
+![Screenshot](Screenshots/Screenshot_2025-11-10_20-17-46.png "7-Segments style")
 
 This is also proof that a fully functional program can be created with a Bash script. The advantages are obvious: a minimal installation of Linux is sufficient without having to use a bloated programming language.
 
 ![Screenshot](Screenshots/Screenshot_2025-11-10_20-21-49.png "Nixie style")
-
 
 ## Description
 
@@ -55,13 +56,28 @@ Due to the lack of a native Bash Shell, you can install [GIT Bash for Windows](h
 
 ## Options
 
+### --alarm
+
+This option is setting up an alarm time in HH:MM. E.g.: `./clock.bash --alarm=16:45`
+
+If key `<c>` or `<C>` is pressed, the screen is clearing for a second and the `ALARM !` output is removed from screen.
+
+Restrictions:
+
+- There is no way to set seconds as well (HH:MM:SS). Is this useful?
+- There is no way to set a specific date. I am assuming that is is not needed. Or is it?
+- There is no way to set a specific action as executing another program by now. Would *you* have use of it?
+- Finally: There is no way to set or apply a specific style for the outputted text "ALARM !"
+
+Let me know what you think, and I'll consider whether and how this can be implemented as simply as possible.
+
 ### --style
 
 To give your clock a personal note and for your taste, you can choose one specific style based on an era.
 
 Usage:
 
-```
+```bash
 ./clock.bash --style=50     # run clock using a style from the 50ies
 ./clock.bash --style=E-13B  # same as --style=50 using alias
 ```
@@ -90,7 +106,7 @@ Available styles:
 
 - Visual: OCR‑A (Optical Caracter Recognition) inspired segmented glyphs with distinctive gaps. This style is almost identical to [OCR-A](https://en.wikipedia.org/wiki/OCR-A). OCR-A is a font issued in 1966 and first implemented in 1968. A dedicated font was needed in the early days of computer optical character recognition, when there was a need for a font that could be recognized not only by the computers of that day, but also by humans.
 - Purpose: Readable “machine/early-computer” aesthetic.
-- Good for: Classic OCR look where digits are clearly 
+- Good for: Classic OCR look where digits are clearly
 
 #### `61` or `OCR-A-SIMPLE`
 
@@ -134,6 +150,18 @@ Available styles:
 - Purpose: Classic terminal appearance.
 - Good for: Minimal, highly readable output.
 
+#### `84` or `numbers`
+
+- Visual: Numbers as numbers
+- Purpose: For all terminals
+- Good for: fun
+
+#### `85` or `hashes`
+
+- Visual: Hashes as numbers
+- Purpose: For all terminals
+- Good for: fun
+
 #### `87` or `VT320`
 
 - Visual: [VT320](https://en.wikipedia.org/wiki/VT320) emulation.
@@ -142,7 +170,7 @@ Available styles:
 
 #### `90`  or `MODERN`
 
-- Visual: Contemporary, cleaner glyphs / modernized styling. My own creation finally. 
+- Visual: Contemporary, cleaner glyphs / modernized styling. My own creation finally.
 - Purpose: A modern alternative to the retro sets.
 - Good for: users preferring a sleeker look.
 
@@ -150,27 +178,27 @@ Available styles:
 
 - Use `--color=<color>` to set the display color (default: red).
 - Supported formats:
-    - Colornames:
-        - `black`
-        - `cyan`
-        - `yellow`
-        - `bright`
-        - `yellow`
-        - `bright_green`
-        - `blue`
-        - `bright_magenta`
-        - `bright_blue`
-        - `red`
-        - `bright_white`
-        - `bright_black`
-        - `bright_red`
-        - `bright_cyan`
-        - `white`
-        - `green magenta`
-    - Numeric: `00..15`
-    - ANSI codes: `30..37` and `90..97`
-    - Hex: `#RRGGBB`
-    - RGB triplet R,G,B (`0..255`)
+  - Colornames:
+    - `black`
+    - `cyan`
+    - `yellow`
+    - `bright`
+    - `yellow`
+    - `bright_green`
+    - `blue`
+    - `bright_magenta`
+    - `bright_blue`
+    - `red`
+    - `bright_white`
+    - `bright_black`
+    - `bright_red`
+    - `bright_cyan`
+    - `white`
+    - `green magenta`
+  - Numeric: `00..15`
+  - ANSI codes: `30..37` and `90..97`
+  - Hex: `#RRGGBB`
+  - RGB triplet R,G,B (`0..255`)
 
 ## Feature requests?
 

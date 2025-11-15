@@ -3,7 +3,7 @@
 TITLE="Terminal Clock"
 AUTHOR="S. Widmer"
 EMAIL="sery@solnet.ch"
-VERSION="v0.1"
+VERSION="v0.30"
 LICENSE="GNU GPLv3+"
 # -----------------------------------------------------------
 
@@ -79,6 +79,10 @@ set_color_escape() {
 
 # default style (80). Accept --style=70 or --style=80
 STYLE=80
+
+ALARM=""
+
+# parse command line arguments
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --style=*)
@@ -95,6 +99,8 @@ while [[ $# -gt 0 ]]; do
                 72|segment|7-segment) STYLE=72 ;;
                 78|vt100) STYLE=78 ;;
                 83|vt220) STYLE=83 ;;
+                84|numbers) STYLE=84 ;;
+                85|hashes) STYLE=85 ;;
                 87|vt320) STYLE=87 ;;
                 90|modern) STYLE=90 ;;
                 80|default) STYLE=80 ;;
@@ -105,6 +111,9 @@ while [[ $# -gt 0 ]]; do
             shift ;;
         --color=*)
             COLOR="${1#--color=}"
+            shift ;;
+        --alarm=*)
+            ALARM="${1#--alarm=}"
             shift ;;
         -h|--help) printf '\nChoose one of the following options:'
            printf '\n  --style=50 or --style=E-13B \t\tMagnetic MICR E-13B font'
@@ -118,6 +127,8 @@ while [[ $# -gt 0 ]]; do
            printf '\n  --style=78 or --VT100 \t\tVT100 font'
            printf '\n  --style=80 or --default \t\tdefault 80ies font'
            printf '\n  --style=83 or --VT220 \t\tVT220 font'
+           printf '\n  --style=84 or --NUMBERS \t\tnumbers font'
+           printf '\n  --style=85 or --HASHES \t\thashes font'
            printf '\n  --style=87 or --VT320 \t\tVT320 font'
            printf '\n  --style=90 or --MODERN \t\tmodern font'
 
@@ -280,6 +291,32 @@ elif [[ "$STYLE" -eq 83 ]]; then
     D[9]=$'\n▄▀▀▀▀▀▄\n▀▄▄▄▄▀█\n     ▄▀\n ▀▀▀▀  '
     D[:]=$'\n ▄▄ \n ▀▀ \n ██ \n    '
     D[.]=$'\n    \n    \n ▄▄ \n ▀▀ '
+elif [[ "$STYLE" -eq 84 ]]; then
+    D[0]=$' 000000\n 00  00\n 00  00\n 00  00\n 000000'
+    D[1]=$'    11 \n    11 \n    11 \n    11 \n    11 '
+    D[2]=$' 222222\n     22\n 222222\n 22    \n 222222'
+    D[3]=$' 333333\n     33\n 333333\n     33\n 333333'
+    D[4]=$' 44  44\n 44  44\n 444444\n     44\n     44'
+    D[5]=$' 555555\n 55    \n 555555\n     55\n 555555'
+    D[6]=$' 666666\n 66    \n 666666\n 66  66\n 666666'
+    D[7]=$' 777777\n     77\n     77\n     77\n     77'
+    D[8]=$' 888888\n 88  88\n 888888\n 88  88\n 888888'
+    D[9]=$' 999999\n 99  99\n 999999\n     99\n 999999'
+    D[:]=$'  \n #\n  \n #\n  '
+    D[.]=$'  \n  \n  \n  \n #'
+elif [[ "$STYLE" -eq 85 ]]; then
+    D[0]=$' ######\n ##  ##\n ##  ##\n ##  ##\n ######'
+    D[1]=$'    ## \n    ## \n    ## \n    ## \n    ## '
+    D[2]=$' ######\n     ##\n ######\n ##    \n ######'
+    D[3]=$' ######\n     ##\n ######\n     ##\n ######'
+    D[4]=$' ##  ##\n ##  ##\n ######\n     ##\n     ##'
+    D[5]=$' ######\n ##    \n ######\n     ##\n ######'
+    D[6]=$' ######\n ##    \n ######\n ##  ##\n ######'
+    D[7]=$' ######\n     ##\n     ##\n     ##\n     ##'
+    D[8]=$' ######\n ##  ##\n ######\n ##  ##\n ######'
+    D[9]=$' ######\n ##  ##\n ######\n     ##\n ######'
+    D[:]=$'  \n #\n  \n #\n  '
+    D[.]=$'  \n  \n  \n  \n #'
 elif [[ "$STYLE" -eq 87 ]]; then
     D[0]=$'\n  ▄▀▀▄  \n ██  ██ \n ▀█  █▀ \n   ▀▀   '
     D[1]=$'\n ▄▄██   \n   ██   \n   ██   \n ▀▀▀▀▀▀ '
@@ -290,7 +327,7 @@ elif [[ "$STYLE" -eq 87 ]]; then
     D[6]=$'\n ▄▄▀▀▀  \n██ ▄▄▄  \n▀██   ██\n  ▀▀▀▀▀ '
     D[7]=$'\n ▀▀▀▀▀██\n    ▄█▀ \n  ▄█▀   \n ▀▀     '
     D[8]=$'\n ▄█▀▀█▄ \n ▀█▄▄█▀ \n ██  ██ \n  ▀▀▀▀  '
-    D[9]=$'\n▄█▀▀█▄  \n▀█▄▄█▀█▄\n     ▄█▀\n ▀q▀▀▀▀  '
+    D[9]=$'\n▄█▀▀█▄  \n▀█▄▄█▀█▄\n     ▄█▀\n ▀▀▀▀▀  '
     D[:]=$'\n ▄▄ \n ▀▀ \n ██ \n    '
     D[.]=$'\n    \n    \n ▄▄ \n ▀▀ '
 # Define digit representations for style 80ies
@@ -384,10 +421,44 @@ while true; do
         printf '%b%b%b\n' "$COLOR_ESC" " ${date_rows[3]}" $'\e[0m'
         printf '%b%b%b\n' "$COLOR_ESC" " ${date_rows[4]}" $'\e[0m'
 
+        # separator line if alarm is set
+        if [ -n "$ALARM" ]; then
+            printf '\n%b' "$COLOR_ESC"
+            printf -v __bar '%*s' "$cols" ''
+            __bar=${__bar// /━}
+            printf '%s' "$__bar"
+            if [[ "$ALARM" == "cleared" ]]; then
+                ALARM=""
+                # clear screen area used for alarm messages
+                printf '\033[2J'         # clear entire screen to avoid artifacts
+            # check if alarm time is valid
+            elif ! [[ "$ALARM" =~ ^([01][0-9]|2[0-3]):[0-5][0-9]$ ]]; then
+                ALARM=""
+                printf '%b\n\n' $'\e[0m'
+                printf '%b%s%b\n\n' "$COLOR_ESC" "  ██  INVALID ALARM TIME FORMAT  ██" $'\e[0m'
+            # check if alarm time is reached
+            elif [[ "$now" == "$ALARM:00" ]]; then
+                ALARM=""
+                printf '%b\n\n' $'\e[0m'    # clear formatting
+                printf '%b%s%b\n' "$COLOR_ESC" "  ██████  ██     ██████  ██████  ██████████  ██" $'\e[0m'
+                printf '%b%s%b\n' "$COLOR_ESC" "  ██  ██  ██     ██  ██  ██  ██  ██  ██  ██  ██" $'\e[0m'
+                printf '%b%s%b\n' "$COLOR_ESC" "  ██████  ██     ██████  ██████  ██  ██  ██  ██" $'\e[0m'
+                printf '%b%s%b\n' "$COLOR_ESC" "  ██  ██  ██     ██  ██  ██ ██   ██  ██  ██    " $'\e[0m'
+                printf '%b%s%b\n' "$COLOR_ESC" "  ██  ██  █████  ██  ██  ██  ██  ██  ██  ██  ██" $'\e[0m'
+            # check if alarm time has already passed
+            elif (( $(date -d "$ALARM:00" +%s) < $(date +%s) )); then
+                ALARM=""
+                printf '%b\n\n' $'\e[0m'
+                printf '%b%s%b\n\n' "$COLOR_ESC" "  ██ ALARM TIME ALREADY ELAPSED ██" $'\e[0m'
+            elif [[ -n "$ALARM" ]]; then
+                printf '%b\n\n' $'\e[0m'
+                printf '%b%s%b\n\n' "$COLOR_ESC" "  ALARM SET FOR $ALARM..." $'\e[0m'
+            fi
+        fi
         # draw inverted statusbar on the bottom
         cols=$(tput cols)
         lines=$(tput lines)
-        right_msg="| Q: Quit " # use ASCII pipe to avoid flickering
+        right_msg="| C: Clear | Q: Quit " # use ASCII pipe to avoid flickering
         left_msg="${TITLE} ${VERSION}  ${AUTHOR}  ${EMAIL}  ${LICENSE}"
         left_len=${#left_msg}
         right_len=${#right_msg}
@@ -407,11 +478,15 @@ while true; do
 
     # wait a short time and check for a keypress; quit on 'q' or 'Q'
     key=
-    if read -rsn1 -t 0.1 key; then
+    if read -rsn1 -t 0.2 key; then
         if [[ $key == 'q' || $key == 'Q' || $key == $'\e' ]]; then
             tput cnorm
             printf '\033[2J'    # clear screen
             exit 0
+        elif [[ $key == 'c' || $key == 'C' ]]; then
+            # clear alarm
+            ALARM="cleared"
+            #
         fi
     fi
 done
