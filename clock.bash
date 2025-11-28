@@ -3,13 +3,19 @@
 TITLE="Terminal Clock"
 AUTHOR="S. Widmer"
 EMAIL="sery@solnet.ch"
-VERSION="v0.30"
-LICENSE="GNU GPLv3+"
+VERSION="v0.50"
+LICENSE="GNU GPLv3+" 
 # -----------------------------------------------------------
 
-
-# default color (red)
+#
+# Initial default values
+#
 COLOR="red"
+STYLE=80
+ALARM=""
+STOPWATCH=""
+COUNTDOWN=""
+STATUSBAR=1
 
 # map color names -> ANSI codes (0-15 supported -> 30-37,90-97)
 declare -A _COLORS=(
@@ -77,12 +83,11 @@ set_color_escape() {
     exit 1
 }
 
-# default style (80). Accept --style=70 or --style=80
-STYLE=80
 
-ALARM=""
 
+#
 # parse command line arguments
+#
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --style=*)
@@ -97,11 +102,15 @@ while [[ $# -gt 0 ]]; do
                 70|data-70) STYLE=70 ;;
                 71|data-70-simple) STYLE=71 ;;
                 72|segment|7-segment) STYLE=72 ;;
+                73|segment-thin|7-segment-thin) STYLE=73 ;;
+                74|segment-rounded|7-segment-rounded) STYLE=74 ;;
                 78|vt100) STYLE=78 ;;
+                82|thin) STYLE=82 ;;
                 83|vt220) STYLE=83 ;;
                 84|numbers) STYLE=84 ;;
                 85|hashes) STYLE=85 ;;
                 87|vt320) STYLE=87 ;;
+                88|dots) STYLE=88 ;;
                 90|modern) STYLE=90 ;;
                 80|default) STYLE=80 ;;
                 *)
@@ -115,22 +124,39 @@ while [[ $# -gt 0 ]]; do
         --alarm=*)
             ALARM="${1#--alarm=}"
             shift ;;
+        --countdown=*)
+            COUNTDOWN="${1#--countdown=}"
+            shift ;;
+        --statusbar=*)
+            STATUSBAR="${1#--statusbar=}"
+            shift ;;
+        --stopwatch=*)
+            STOPWATCH="${1#--stopwatch=}"
+            shift ;;
         -h|--help) printf '\nChoose one of the following options:'
-           printf '\n  --style=50 or --style=E-13B \t\tMagnetic MICR E-13B font'
-           printf '\n  --style=51 or --style=E-13B-simple \tas above but blocks only version'
-           printf '\n  --style=55 or --style=NIXIE \t\tnixie tube font'
-           printf '\n  --style=60 or --style=OCR-A \t\tOCR-A font'
-           printf '\n  --style=61 or --style=OCR-A-SIMPLE \tas above but blocks only version'
-           printf '\n  --style=70 or --style=DATA-70 \ta futuristic font'
-           printf '\n  --style=71 or --style=DATA-70-SIMPLE \tas above blocks only version'
-           printf '\n  --style=72 or --style=7-SEGMENT \tseven segment display font'
-           printf '\n  --style=78 or --VT100 \t\tVT100 font'
-           printf '\n  --style=80 or --default \t\tdefault 80ies font'
-           printf '\n  --style=83 or --VT220 \t\tVT220 font'
-           printf '\n  --style=84 or --NUMBERS \t\tnumbers font'
-           printf '\n  --style=85 or --HASHES \t\thashes font'
-           printf '\n  --style=87 or --VT320 \t\tVT320 font'
-           printf '\n  --style=90 or --MODERN \t\tmodern font'
+           printf '\n  --alarm=<HH:MM> \tSet alarm time (24h format), e.g., --alarm=07:30'
+           printf '\n  --stopwatch=<triggerword> \t\tStart stopwatch mode, e.g., --stopwatch=start'
+           printf '\n  --countdown=<HH:MM:SS> \tSet Countdown (24h format), e.g., --countdown=00:05:00\n\n' 
+           printf '\n  --style=<style> \tSupported styles:'
+           printf '\n    --style=50 or --style=E-13B \t\tMagnetic MICR E-13B font'
+           printf '\n    --style=51 or --style=E-13B-simple \tas above but blocks only version'
+           printf '\n    --style=55 or --style=NIXIE \t\tnixie tube font'
+           printf '\n    --style=60 or --style=OCR-A \t\tOCR-A font'
+           printf '\n    --style=61 or --style=OCR-A-SIMPLE \tas above but blocks only version'
+           printf '\n    --style=70 or --style=DATA-70 \ta futuristic font'
+           printf '\n    --style=71 or --style=DATA-70-SIMPLE \tas above blocks only version'
+           printf '\n    --style=72 or --style=7-SEGMENT \tseven segment display font'
+           printf '\n    --style=73 or --style=7-SEGMENT-THIN \tseven segment display font, thin version'
+           printf '\n    --style=74 or --style=7-SEGMENT-ROUNDED \tseven segment display font, rounded version'
+           printf '\n    --style=78 or --VT100 \t\tVT100 font'
+           printf '\n    --style=80 or --default \t\tdefault 80ies font'
+           printf '\n    --style=82 or --thin \t\tThin font'
+           printf '\n    --style=83 or --VT220 \t\tVT220 font'
+           printf '\n    --style=84 or --NUMBERS \t\tnumbers font'
+           printf '\n    --style=85 or --HASHES \t\thashes font'
+           printf '\n    --style=87 or --VT320 \t\tVT320 font'
+           printf '\n    --style=88 or --DOTS \t\tdots font'
+           printf '\n    --style=90 or --MODERN \t\tmodern font'
 
            printf '\n\n  --color=<color> \t\tSet display color (default: red)\n'
            printf '\nSupported:\n1. named colors: \n%s' "$(printf '%s ' "${!_COLORS[@]}")"
@@ -141,10 +167,17 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
+
+# Either alarm or stopwatch or countdown can be set, not more than one
+if [[ -n "$ALARM" && -n "$STOPWATCH" ]] || [[ -n "$ALARM" && -n "$COUNTDOWN" ]] || [[ -n "$STOPWATCH" && -n "$COUNTDOWN" ]]; then
+    printf "Error: You can set either --alarm, --countdown, or --stopwatch, but not combining them\n\n"
+    exit 1
+fi
+
 # compute COLOR_ESC (escape sequence used to color the output)
 set_color_escape
 
-# Define digit representations for style 70ies (inspired by "Data 70 font")
+# declare an array
 declare -A D
 
 if [[ "$STYLE" -eq 50 ]]; then
@@ -184,8 +217,8 @@ elif [[ "$STYLE" -eq 55 ]]; then
     D[7]=$' ▀▀▀▀▀█\n     █ \n    █  \n   █   \n  █    '
     D[8]=$' ▄▀▀▀▄ \n▀▄   ▄▀\n ▄▀▀▀▄ \n█     █\n ▀▄▄▄▀ '
     D[9]=$' ▄▀▀▀▄ \n█     █\n▀▄   ▄▀\n  ▀█▀  \n ▄▀    '
-    D[:]=$'  \n ▄\n  \n ▄\n  '
-    D[.]=$'  \n  \n  \n  \n ▄'
+    D[:]=$'   \n ▄ \n   \n ▄ \n   '
+    D[.]=$'   \n   \n   \n   \n ▄ '
 elif [[ "$STYLE" -eq 60 ]]; then
     D[0]=$' █▀▀▀▀█\n █    █\n █    █\n █    █\n █▄▄▄▄█'
     D[1]=$' ▀▀█   \n   █   \n   █   \n   █ ▄ \n ▄▄█▄█ '
@@ -238,20 +271,45 @@ elif [[ "$STYLE" -eq 71 ]]; then
     D[9]=$' █▀▀▀▀█\n █    █\n █    █\n ▀▀▀▀██\n     ██'
     D[:]=$'   \n ██\n   \n ██\n   '
     D[.]=$'   \n   \n   \n   \n ██'
-    D[.]=$'   \n   \n   \n   \n ██'
 elif [[ "$STYLE" -eq 72 ]]; then
     D[0]=$' █▀▀▀▀█\n █    █\n █    █\n █    █\n █▄▄▄▄█'
-    D[1]=$'    █  \n    █  \n    █  \n    █  \n    █  '
+    D[1]=$'      █\n      █\n      █\n      █\n      █'
     D[2]=$' ▀▀▀▀▀█\n      █\n █▀▀▀▀▀\n █     \n █▄▄▄▄▄'
     D[3]=$' ▀▀▀▀▀█\n      █\n  ▀▀▀▀█\n      █\n ▄▄▄▄▄█'
-    D[4]=$' █    █\n █    █\n █▄▄▄▄█\n      █\n      █'
+    D[4]=$' █    █\n █    █\n ▀▀▀▀▀█\n      █\n      █'
     D[5]=$' █▀▀▀▀▀\n █     \n ▀▀▀▀▀█\n      █\n ▄▄▄▄▄█'
     D[6]=$' █▀▀▀▀▀\n █     \n █▀▀▀▀█\n █    █\n █▄▄▄▄█'
     D[7]=$' ▀▀▀▀▀█\n      █\n      █\n      █\n      █'
     D[8]=$' █▀▀▀▀█\n █    █\n █▀▀▀▀█\n █    █\n █▄▄▄▄█'
-    D[9]=$' █▀▀▀▀█\n █    █\n ▀▀▀▀▀█\n      █\n ▄▄▄▄▄█'
+    D[9]=$' █▀▀▀▀█\n █    █\n ▀▀▀▀▀█\n      █\n ▄▄▄▄▄│'
     D[:]=$'  \n ▄\n  \n ▄\n  '
     D[.]=$'  \n  \n  \n  \n ▄'
+elif [[ "$STYLE" -eq 73 ]]; then
+    D[0]=$'┌────┐\n│    │\n│    │\n│    │\n└────┘'
+    D[1]=$'     ╷\n     │\n     │\n     │\n     ╵'
+    D[2]=$'╶────┐\n     │\n┌────┘\n│     \n└────╴'
+    D[3]=$'╶────┐\n     │\n╶────┤\n     │\n╶────┘'
+    D[4]=$'╷    ╷\n│    │\n└────┤\n     │\n     ╵'
+    D[5]=$'┌────╴\n│     \n└────┐\n     │\n╶────┘'
+    D[6]=$'┌────╴\n│     \n├────┐\n│    │\n└────┘'
+    D[7]=$'╶────┐\n     │\n     │\n     │\n     ╵'
+    D[8]=$'┌────┐\n│    │\n├────┤\n│    │\n└────┘'
+    D[9]=$'┌────┐\n│    │\n└────┤\n     │\n╶────┘'
+    D[:]=$' \n▪\n \n▪\n '
+    D[.]=$' \n \n \n \n▪'
+elif [[ "$STYLE" -eq 74 ]]; then
+    D[0]=$'╭────╮\n│    │\n│    │\n│    │\n╰────╯'
+    D[1]=$'     ╷\n     │\n     │\n     │\n     ╵'
+    D[2]=$'╶────╮\n     │\n╭────╯\n│     \n╰────╴'
+    D[3]=$'╶────╮\n     │\n╶────┤\n     │\n╶────╯'
+    D[4]=$'╷    ╷\n│    │\n╰────┤\n     │\n     ╵'
+    D[5]=$'╭────╴\n│     \n╰────╮\n     │\n╶────╯'
+    D[6]=$'╭────╴\n│     \n├────╮\n│    │\n╰────╯'
+    D[7]=$'╶────╮\n     │\n     │\n     │\n     ╵'
+    D[8]=$'╭────╮\n│    │\n├────┤\n│    │\n╰────╯'
+    D[9]=$'╭────╮\n│    │\n╰────┤\n     │\n╶────╯'
+    D[:]=$' \n▪\n \n▪\n '
+    D[.]=$' \n \n \n \n▪'
 elif [[ "$STYLE" -eq 78 ]]; then
     D[0]=$'\n ▄▀▀▀▄ \n█     █\n▀▄   ▄▀\n  ▀▀▀  '
     D[1]=$'\n  ▄█   \n ▀ █   \n   █   \n ▀▀▀▀▀ '
@@ -277,6 +335,19 @@ elif [[ "$STYLE" -eq 90 ]]; then
     D[8]=$'  ▄▀▀▄ \n ▀▄  ▄▀\n  ▄▀▀▄ \n █    █\n  ▀▄▄▀ '
     D[9]=$'  ▄▀▀▄ \n █    █\n  ▀▄▄▀█\n      █\n ▀▄▄▄▀ '
     D[:]=$'  \n ▄\n  \n ▄\n  '
+    D[.]=$'  \n  \n  \n  \n ▄'
+elif [[ "$STYLE" -eq 82 ]]; then
+    D[0]=$' ▄▀▀▀▀▄\n █ ▗▖ █\n █ ▐▌ █\n █ ▝▘ █\n ▀▄▄▄▄▀'
+    D[1]=$'   ▄█  \n ▄▀ █  \n    █  \n    █  \n    █  '
+    D[2]=$' ▄▀▀▀▀▄\n      █\n    ▄▀ \n  ▄▀   \n █▄▄▄▄▄'
+    D[3]=$' ▄▀▀▀▀▄\n      █\n  ▀▀▀▀▄\n      █\n ▀▄▄▄▄▀'
+    D[4]=$'    ▄█ \n  ▄▀ █ \n █▄▄▄█▄\n     █ \n     █ '
+    D[5]=$' █▀▀▀▀ \n █     \n ▀▀▀▀▀▄\n      █\n ▀▄▄▄▄▀'
+    D[6]=$' ▄▀▀▀▀▄\n █     \n █▀▀▀▀▄\n █    █\n ▀▄▄▄▄▀'
+    D[7]=$' ▀▀▀▀▀█\n     █ \n    █  \n   █   \n  █    '
+    D[8]=$' ▄▀▀▀▀▄\n █    █\n ▄▀▀▀▀▄\n █    █\n ▀▄▄▄▄▀'
+    D[9]=$' ▄▀▀▀▀▄\n █    █\n  ▀▀▀▀█\n      █\n ▀▄▄▄▄▀'
+    D[:]=$'  \n ▀\n  \n ▀\n  '
     D[.]=$'  \n  \n  \n  \n ▄'
 elif [[ "$STYLE" -eq 83 ]]; then
     D[0]=$'\n ▄▀▀▀▄ \n█     █\n▀▄   ▄▀\n  ▀▀▀  '
@@ -330,10 +401,23 @@ elif [[ "$STYLE" -eq 87 ]]; then
     D[9]=$'\n▄█▀▀█▄  \n▀█▄▄█▀█▄\n     ▄█▀\n ▀▀▀▀▀  '
     D[:]=$'\n ▄▄ \n ▀▀ \n ██ \n    '
     D[.]=$'\n    \n    \n ▄▄ \n ▀▀ '
+elif [[ "$STYLE" -eq 88 ]]; then
+    D[0]=$'   ● ●   \n ●     ● \n ●     ● \n ●     ● \n   ● ●   '
+    D[1]=$'     ●   \n   ● ●   \n     ●   \n     ●   \n   ● ● ● '
+    D[2]=$'   ● ●   \n ●     ● \n     ●   \n   ●     \n ● ● ● ● '
+    D[3]=$' ● ● ●   \n       ● \n   ● ●   \n       ● \n ● ● ●   '
+    D[4]=$' ●     ● \n ●     ● \n ● ● ● ● \n       ● \n       ● '
+    D[5]=$' ● ● ●   \n ●       \n ● ● ●   \n       ● \n ● ● ●   '
+    D[6]=$'   ● ●   \n ●       \n ● ● ●   \n ●     ● \n   ● ●   '
+    D[7]=$' ● ● ● ● \n       ● \n     ●   \n    ●    \n   ●     '
+    D[8]=$'   ● ●   \n ●     ● \n   ● ●   \n ●     ● \n   ● ●   '
+    D[9]=$'   ● ●   \n ●     ● \n   ● ● ● \n       ● \n   ● ●   '
+    D[:]=$'   \n ● \n   \n ● \n   '
+    D[.]=$'   \n   \n   \n   \n ● '
 # Define digit representations for style 80ies
 else
     D[0]=$' ██████\n ██  ██\n ██  ██\n ██  ██\n ██████'
-    D[1]=$'    ██ \n    ██ \n    ██ \n    ██ \n    ██ '
+    D[1]=$'     ██\n     ██\n     ██\n     ██\n     ██'
     D[2]=$' ██████\n     ██\n ██████\n ██    \n ██████'
     D[3]=$' ██████\n     ██\n ██████\n     ██\n ██████'
     D[4]=$' ██  ██\n ██  ██\n ██████\n     ██\n     ██'
@@ -402,7 +486,7 @@ while true; do
 
         # move cursor to top-left and print (no whole-screen clear)
         printf '\033[H'
-        printf '\n'   # small top padding
+        printf '\n'   # small top padding 
         printf '%b%b%b\n' "$COLOR_ESC" " ${rows[0]}" $'\e[0m'
         printf '%b%b%b\n' "$COLOR_ESC" " ${rows[1]}" $'\e[0m'
         printf '%b%b%b\n' "$COLOR_ESC" " ${rows[2]}" $'\e[0m'
@@ -420,22 +504,26 @@ while true; do
         printf '%b%b%b\n' "$COLOR_ESC" " ${date_rows[2]}" $'\e[0m'
         printf '%b%b%b\n' "$COLOR_ESC" " ${date_rows[3]}" $'\e[0m'
         printf '%b%b%b\n' "$COLOR_ESC" " ${date_rows[4]}" $'\e[0m'
+        # separator line
+        printf '\n%b' "$COLOR_ESC"
+        printf -v __bar '%*s' "$cols" ''
+        __bar=${__bar// /━}
+        printf '%s' "$__bar"
+        #printf '%b\n\n' $'\e[0m'
+        
+        #
+        # Alarm handling
+        #
 
         # separator line if alarm is set
-        if [ -n "$ALARM" ]; then
-            printf '\n%b' "$COLOR_ESC"
-            printf -v __bar '%*s' "$cols" ''
-            __bar=${__bar// /━}
-            printf '%s' "$__bar"
-            if [[ "$ALARM" == "cleared" ]]; then
-                ALARM=""
-                # clear screen area used for alarm messages
-                printf '\033[2J'         # clear entire screen to avoid artifacts
-            # check if alarm time is valid
-            elif ! [[ "$ALARM" =~ ^([01][0-9]|2[0-3]):[0-5][0-9]$ ]]; then
+        if [ "$ALARM" ]; then
+            if ! [[ "$ALARM" =~ ^([01][0-9]|2[0-3]):[0-5][0-9]$ ]]; then
                 ALARM=""
                 printf '%b\n\n' $'\e[0m'
                 printf '%b%s%b\n\n' "$COLOR_ESC" "  ██  INVALID ALARM TIME FORMAT  ██" $'\e[0m'
+                # get out of here and put terminal back to normal!
+                tput cnorm
+                exit 0
             # check if alarm time is reached
             elif [[ "$now" == "$ALARM:00" ]]; then
                 ALARM=""
@@ -445,48 +533,177 @@ while true; do
                 printf '%b%s%b\n' "$COLOR_ESC" "  ██████  ██     ██████  ██████  ██  ██  ██  ██" $'\e[0m'
                 printf '%b%s%b\n' "$COLOR_ESC" "  ██  ██  ██     ██  ██  ██ ██   ██  ██  ██    " $'\e[0m'
                 printf '%b%s%b\n' "$COLOR_ESC" "  ██  ██  █████  ██  ██  ██  ██  ██  ██  ██  ██" $'\e[0m'
-            # check if alarm time has already passed
-            elif (( $(date -d "$ALARM:00" +%s) < $(date +%s) )); then
+                # delete status bar
+                cols=$(tput cols)
+                lines=$(tput lines)
+                printf '%s' "$(tput cup $((lines-1)) 0)$(printf '%*s' "$cols" '')"
+                # get out of here and put terminal back to normal!
+                tput cnorm
+                exit 0
+                #check if alarm is not in the past
+            elif [[ "$(date -d "$ALARM" +%s)" -lt "$(date +%s)" ]]; then
                 ALARM=""
                 printf '%b\n\n' $'\e[0m'
-                printf '%b%s%b\n\n' "$COLOR_ESC" "  ██ ALARM TIME ALREADY ELAPSED ██" $'\e[0m'
+                printf '%b%s%b\n\n' "$COLOR_ESC" "  ██  ALARM TIME IS IN THE PAST  ██" $'\e[0m'
+                # get out of here and put terminal back to normal!
+                tput cnorm
+                exit 0                
             elif [[ -n "$ALARM" ]]; then
                 printf '%b\n\n' $'\e[0m'
                 printf '%b%s%b\n\n' "$COLOR_ESC" "  ALARM SET FOR $ALARM..." $'\e[0m'
             fi
         fi
-        # draw inverted statusbar on the bottom
-        cols=$(tput cols)
-        lines=$(tput lines)
-        right_msg="| C: Clear | Q: Quit " # use ASCII pipe to avoid flickering
-        left_msg="${TITLE} ${VERSION}  ${AUTHOR}  ${EMAIL}  ${LICENSE}"
-        left_len=${#left_msg}
-        right_len=${#right_msg}
-        pad=$((cols - left_len - right_len))
-        if (( pad < 1 )); then
-            # truncate left_msg to make room for right_msg and at least one space
-            max_left=$((cols - right_len - 1))
-            (( max_left < 0 )) && max_left=0
-            left_msg="${left_msg:0:max_left}"
-            left_len=${#left_msg}
-            pad=$((cols - left_len - right_len))
-            (( pad < 0 )) && pad=0
+
+        #
+        # Countdown handling
+        #
+        if [[ "$COUNTDOWN" ]]; then
+            if ! [[ "$COUNTDOWN" =~ ^([0-9]+):([0-5][0-9]):([0-5][0-9])$ ]]; then
+                COUNTDOWN=""
+                printf '%b\n\n' $'\e[0m'
+                printf '%b%s%b\n\n' "$COLOR_ESC" "  ██  INVALID COUNTDOWN TIME FORMAT  ██" $'\e[0m'
+                # get out of here and put terminal back to normal!
+                tput cnorm
+                exit 0
+            fi
+            # calculate remaining seconds
+            IFS=':' read -r cd_hours cd_minutes cd_seconds <<< "$COUNTDOWN"
+            TOTAL_SECONDS=$(( cd_hours * 3600 + cd_minutes * 60 + cd_seconds ))
+            if [[ -z "$COUNTDOWN_START_TIME" ]]; then
+                COUNTDOWN_START_TIME=$(date +%s)
+            fi
+            ELAPSED=$(( $(date +%s) - COUNTDOWN_START_TIME ))
+            REMAINING=$(( TOTAL_SECONDS - ELAPSED ))
+            # check if countdown has reached zero
+            if (( REMAINING <= 0 )); then
+                    COUNTDOWN=""
+
+                    printf '%b\n\n' $'\e[0m'    # clear formatting
+                    printf '%b%s%b\n' "$COLOR_ESC" "  ██████  ██  ██████████  ██████    ██  ██████    ██  ██  ██████  ██" $'\e[0m'
+                    printf '%b%s%b\n' "$COLOR_ESC" "    ██    ██  ██  ██  ██  ██        ██  ██        ██  ██  ██  ██  ██" $'\e[0m'
+                    printf '%b%s%b\n' "$COLOR_ESC" "    ██    ██  ██  ██  ██  ████      ██  ██████    ██  ██  ██████  ██" $'\e[0m'
+                    printf '%b%s%b\n' "$COLOR_ESC" "    ██    ██  ██  ██  ██  ██        ██      ██    ██  ██  ██        " $'\e[0m'
+                    printf '%b%s%b\n' "$COLOR_ESC" "    ██    ██  ██  ██  ██  ██████    ██  ██████    ██████  ██      ██" $'\e[0m'
+                    # delete status bar
+                    cols=$(tput cols)
+                    lines=$(tput lines)
+                    printf '%s' "$(tput cup $((lines-1)) 0)$(printf '%*s' "$cols" '')"
+                    # get out of here and put terminal back to normal!
+                    tput cnorm
+                    exit 0
+            else
+                # continue countdown display
+
+                HOURS=$(( REMAINING / 3600 ))
+                MINUTES=$(( (REMAINING % 3600) / 60 ))
+                SECONDS=$(( REMAINING % 60 ))
+                # show larger digits for countdown including leading zeros and colon separators
+                #HOURS=$(printf "%02d" $HOURS)
+                countdown_rows=("" "" "" "" "")
+                COUNTDOWN_STR=$(printf "%02d:%02d:%02d" $HOURS $MINUTES $SECONDS)
+                for ((i=0;i<${#COUNTDOWN_STR};i++)); do
+                    ch=${COUNTDOWN_STR:i:1}
+                    digit="${D[$ch]}"
+                    readarray -t lines <<< "$digit"
+                    countdown_rows[0]+="${lines[0]} "
+                    countdown_rows[1]+="${lines[1]} "
+                    countdown_rows[2]+="${lines[2]} "
+                    countdown_rows[3]+="${lines[3]} "
+                    countdown_rows[4]+="${lines[4]} "
+                done
+
+                printf '%b\n\n' $'\e[0m'
+                printf '%b%b%b\n' "$COLOR_ESC" " ${countdown_rows[0]}" $'\e[0m'
+                printf '%b%b%b\n' "$COLOR_ESC" " ${countdown_rows[1]}" $'\e[0m'
+                printf '%b%b%b\n' "$COLOR_ESC" " ${countdown_rows[2]}" $'\e[0m'
+                printf '%b%b%b\n' "$COLOR_ESC" " ${countdown_rows[3]}" $'\e[0m'
+                printf '%b%b%b\n' "$COLOR_ESC" " ${countdown_rows[4]}" $'\e[0m'
+            fi
         fi
-        # move to last row and print reversed full-width status line: left_msg + padding + right_msg
-        printf '%s' "$(tput cup $((lines-1)) 0)$(tput rev)${left_msg}$(printf '%*s' "$pad" '')${right_msg}$(tput sgr0)"
+
+        #
+        # Stopwatch handling
+        #
+        if [[ "$STOPWATCH" == "start" || "$STOPWATCH" == "on" || "$STOPWATCH" == "1" ]]; then
+                START_TIME=$(date +%s)
+                # change state to running
+                STOPWATCH="running"
+        fi
+        if [[ "$STOPWATCH" == "running" ]]; then
+                ELAPSED=$(( $(date +%s) - START_TIME ))
+                HOURS=$(( ELAPSED / 3600 ))
+                MINUTES=$(( (ELAPSED % 3600) / 60 ))
+                SECONDS=$(( ELAPSED % 60 ))
+                
+                # show larger digits for stopwatch including leading zeros and colon separators
+                #HOURS=$(printf "%02d" $HOURS)
+                stopwatch_rows=("" "" "" "" "")
+
+                STOPWATCH_STR=$(printf "%02d:%02d:%02d" $HOURS $MINUTES $SECONDS)
+                for ((i=0;i<${#STOPWATCH_STR};i++)); do
+                    ch=${STOPWATCH_STR:i:1}
+                    digit="${D[$ch]}"
+                    readarray -t lines <<< "$digit"
+                    stopwatch_rows[0]+="${lines[0]} "
+                    stopwatch_rows[1]+="${lines[1]} "
+                    stopwatch_rows[2]+="${lines[2]} "
+                    stopwatch_rows[3]+="${lines[3]} "
+                    stopwatch_rows[4]+="${lines[4]} "
+                done
+                
+                #printf '%b%s%b\n' "$COLOR_ESC" "  STOPWATCH: " $'\e[0m'
+                printf '%b\n\n' $'\e[0m'
+                printf '%b%b%b\n' "$COLOR_ESC" " ${stopwatch_rows[0]}" $'\e[0m'
+                printf '%b%b%b\n' "$COLOR_ESC" " ${stopwatch_rows[1]}" $'\e[0m'
+                printf '%b%b%b\n' "$COLOR_ESC" " ${stopwatch_rows[2]}" $'\e[0m'
+                printf '%b%b%b\n' "$COLOR_ESC" " ${stopwatch_rows[3]}" $'\e[0m'
+                printf '%b%b%b\n' "$COLOR_ESC" " ${stopwatch_rows[4]}" $'\e[0m'
+        fi
+
+        #
+        # Status bar at the bottom
+        #
+
+        if [[ "$STATUSBAR" == 1 || "$STATUSBAR" == "on" || "$STATUSBAR" == "true" || "$STATUSBAR" == "yes" ]]; then
+            cols=$(tput cols)
+            lines=$(tput lines)
+            right_msg="| Q: Quit "
+            left_msg="${TITLE} ${VERSION}"
+            left_len=${#left_msg}
+            right_len=${#right_msg}
+            pad=$((cols - left_len - right_len))
+            if (( pad < 1 )); then
+                # truncate left_msg to make room for right_msg and at least one space
+                max_left=$((cols - right_len - 1))
+                (( max_left < 0 )) && max_left=0
+                left_msg="${left_msg:0:max_left}"
+               left_len=${#left_msg}
+               pad=$((cols - left_len - right_len))
+               (( pad < 0 )) && pad=0
+            fi
+        
+            # enforce default terminal colors for status line, not colored
+            printf '\033[0m'
+            # move to last row and print reversed full-width status line: left_msg + padding + right_msg
+            printf '%s' "$(tput cup $((lines-1)) 0)$(tput rev)${left_msg}$(printf '%*s' "$pad" '')${right_msg}$(tput sgr0)"
+        fi
     fi
 
-    # wait a short time and check for a keypress; quit on 'q' or 'Q'
-    key=
+	#
+	# Key handling
+	#
+	
+    # wait a short time (0.2s) and check for a keypress; quit on 'q' or 'Q'
     if read -rsn1 -t 0.2 key; then
         if [[ $key == 'q' || $key == 'Q' || $key == $'\e' ]]; then
+
+            # delete status bar to avoid overwriting the stopwatch time
+            cols=$(tput cols)
+            lines=$(tput lines)
+            printf '%s' "$(tput cup $((lines-1)) 0)$(printf '%*s' "$cols" '')"
+            # get out of here and put terminal back to normal!
             tput cnorm
-            printf '\033[2J'    # clear screen
             exit 0
-        elif [[ $key == 'c' || $key == 'C' ]]; then
-            # clear alarm
-            ALARM="cleared"
-            #
         fi
     fi
 done

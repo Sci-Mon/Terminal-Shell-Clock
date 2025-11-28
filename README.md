@@ -1,12 +1,6 @@
----
-title: Terminal Shell Clock
-author: Simon Widmer
-lang: en
-...
-
 # Terminal Shell Clock
 
-## Preface
+## ⓘ Preface
 
 ![Screenshot](Screenshots/Screenshot_2025-11-10_20-15-17.png "70ies style")
 I am coding this clock just out of fun and because I admire beautiful and funny clocks.
@@ -21,7 +15,7 @@ This is also proof that a fully functional program can be created with a Bash sc
 
 ![Screenshot](Screenshots/Screenshot_2025-11-10_20-21-49.png "Nixie style")
 
-## Description
+## 💡 Description
 
 Measured on several platforms, the CPU-Load should remain below 2% –
 but mostly even below 1%.
@@ -30,7 +24,7 @@ Note that the label «SWISS MADE» of this clock is correct indeed –
 I am living in the «clock-country» Switzerland and try to continue the art of
 designing clocks. It is just that this one is made out of pure software
 
-## Installation and Dependencies
+## 🞋 Installation and Dependencies
 
 ### Linux
 
@@ -46,7 +40,7 @@ As this is a bash script, it is not needed to be installed. Copy it to wherever 
 
 Due to the lack of a native Bash Shell, you can install [GIT Bash for Windows](https://github.com/git-for-windows/git/releases) that is intended for GIT usage and is emulating the Bash only. The clock.bash script will run nevertheless.
 
-## Restrictions in general
+## ❌ Restrictions in general
 
 1. Depending on the font and terminal shell, not all characters (Unicode!) may be displayed correctly or might look pretty.
 
@@ -54,13 +48,28 @@ Due to the lack of a native Bash Shell, you can install [GIT Bash for Windows](h
 
 3. Not every terminal shell is capable of RGB colors although most do nowadays. If using a historic one, it might be a good idea to use one of the 16 specified colors.
 
-## Options
+## ⚙ Options
 
-### --alarm
+### ⏰ Alarm
 
-This option is setting up an alarm time in HH:MM. E.g.: `./clock.bash --alarm=16:45`
+This option is used to set up an alarm time in HH:MM. E.g.: `./clock.bash --alarm=16:45`
+If the alarm time is equal to the actual time, clock.bash is terminating and the following output is showed:
 
-If key `<c>` or `<C>` is pressed, the screen is clearing for a second and the `ALARM !` output is removed from screen.
+```text
+  ██████  ██     ██████  ██████  ██████████  ██
+  ██  ██  ██     ██  ██  ██  ██  ██  ██  ██  ██
+  ██████  ██     ██████  ██████  ██  ██  ██  ██
+  ██  ██  ██     ██  ██  ██ ██   ██  ██  ██    
+  ██  ██  █████  ██  ██  ██  ██  ██  ██  ██  ██
+```
+
+Advantage: You can set up a command-chain as the following example is showing:
+
+```bash
+./clock.bash && aplay /path/to/some/music/alarm.mp3
+```
+
+This will teminate the clock at the given time and then play an mp3 file.
 
 Restrictions:
 
@@ -71,9 +80,60 @@ Restrictions:
 
 Let me know what you think, and I'll consider whether and how this can be implemented as simply as possible.
 
-### --style
+### ⏲ Countdown
 
-To give your clock a personal note and for your taste, you can choose one specific style based on an era.
+This option is defining a countdown time in the format `hh:mm:ss` E.g.: `./clock.bash --countdown=03:00:00`
+
+If the countdown is zero, it will result in the following output and returning to the terminal shell.
+
+```text
+  ██████  ██  ██████████  ██████    ██  ██████    ██  ██  ██████  ██
+    ██    ██  ██  ██  ██  ██        ██  ██        ██  ██  ██  ██  ██
+    ██    ██  ██  ██  ██  ████      ██  ██████    ██  ██  ██████  ██
+    ██    ██  ██  ██  ██  ██        ██      ██    ██  ██  ██        
+    ██    ██  ██  ██  ██  ██████    ██  ██████    ██████  ██      ██
+```
+
+### ⏱ Stopwatch
+
+This option is used to trigger a stopwatch. Usage: `clock.bash --stopwatch=start`
+
+If you quit clock.bash by pressing the key `q` and while the stopwatch is running, the last time is saved before returning back to the terminal shell.
+
+Example of output:
+
+```text
+  ██████  ██████      ██████  ██████      ██████  ██████ 
+      ██      ██  ██      ██      ██  ██      ██      ██ 
+  ██████  ██████      ██████  ██████      ██████  ██████ 
+  ██          ██  ██      ██  ██      ██      ██  ██     
+  ██████  ██████      ██████  ██████      ██████  ██████ 
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+      ██  ██████          ██      ██      ██████  ██████  ██████  ██████ 
+      ██  ██  ██          ██      ██          ██  ██  ██      ██  ██     
+      ██  ██████          ██      ██      ██████  ██  ██  ██████  ██████ 
+      ██  ██  ██          ██      ██      ██      ██  ██  ██          ██ 
+      ██  ██████  ██      ██      ██  ██  ██████  ██████  ██████  ██████ 
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  ██████  ██████          ██  ██████      ██████      ██ 
+  ██  ██  ██  ██  ██      ██  ██  ██  ██  ██  ██      ██ 
+  ██  ██  ██████          ██  ██  ██      ██  ██      ██ 
+  ██  ██  ██  ██  ██      ██  ██  ██  ██  ██  ██      ██ 
+  ██████  ██████          ██  ██████      ██████      ██ 
+```
+
+### Statusbar
+
+- If the option is set to `--statusbar=1` or `--statusbar=on`, the statusbar is shown on the bottom of the terminal shell.
+- If the option is set to `--statusbar=0` or `--statusbar=off`, the statusbar is hidden.
+
+### ☀ Styles
+
+To give your clock a different look or font, you can choose one specific style based on an era.
 
 Usage:
 
@@ -132,6 +192,14 @@ Available styles:
 - Purpose: Classic digital clock/readout appearance.
 - Good for: Minimal, highly legible numeric output.
 
+#### `73` or `7-SEGMENT-THIN`
+
+- Visual: thin Seven-segment display emulation.
+- Purpose: Classic digital clock/readout appearance.
+- Good for: Minimal, highly legible numeric output
+
+#### `74` or `7-SEGMENT-ROUNDED`
+
 #### `78` or `VT100`
 
 - Visual: [VT100](https://en.wikipedia.org/wiki/VT100) emulation.
@@ -174,7 +242,7 @@ Available styles:
 - Purpose: A modern alternative to the retro sets.
 - Good for: users preferring a sleeker look.
 
-### --color
+### Color
 
 - Use `--color=<color>` to set the display color (default: red).
 - Supported formats:
@@ -200,10 +268,19 @@ Available styles:
   - Hex: `#RRGGBB`
   - RGB triplet R,G,B (`0..255`)
 
-## Feature requests?
+Restrictions:
+
+- there is no way to define more than one color
+- there is no way to define a color for the statusbar
+
+### Help
+
+The option `--help` might be used to display all options possible
+
+## ✍ Feature requests?
 
 For any kind of feature you would like to see or bug reporting or thank you's:
 
-[Email me](mailto:sery@solnet.com?subject=clock.bash%20Bugreport)
+[✉ Email me](mailto:sery@solnet.com?subject=clock.bash%20Bugreport)
 
 Take care! Simon
